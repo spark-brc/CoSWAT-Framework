@@ -73,9 +73,9 @@ if __name__ == "__main__":
     }
 
 
-    print(f'\t> rasterising {variables.fao_soil_shape_fn.format(**details)}')
 
     if not os.path.exists(variables.fao_tmp_raster):
+        print(f'\t> rasterising {variables.fao_soil_shape_fn.format(**details)}')
         rasterise_shape(variables.fao_soil_shape_fn.format(**details), "SNUM", variables.fao_tmp_raster, variables.aster_tmp_tif)
 
     for region in regions:

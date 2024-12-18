@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
 # Install Python 3.10 and required dependencies
-RUN apt-get update && apt-get install -y python3.10 python3.10-venv python3.10-dev python3-pip gnupg software-properties-common qgis openmpi-bin openmpi-common openssh-client openssh-server libopenmpi-dev unzip nano imagemagick libmagickwand-dev gdal-bin libgdal-dev python3-gdal ffmpeg
+RUN apt-get update && apt-get install -y python3.10 python3.10-venv python3.10-dev python3-pip gnupg software-properties-common qgis cmake openmpi-bin openmpi-common openssh-client openssh-server libopenmpi-dev unzip nano imagemagick libmagickwand-dev gdal-bin libgdal-dev python3-gdal ffmpeg
 
 
 # Install the Python package cjfx
@@ -19,7 +19,6 @@ RUN pip3 install numpy==1.23.4
 # Set Python 3.10 as the default python3
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
-COPY docker-resources/swatplus-linux.tgz /tmp/swatplus-linux.tgz
 RUN wget https://celray.chawanda.com/assets/downloads/swatplus-linux.tgz -O /tmp/swatplus-linux.tgz
 RUN mkdir -p /tmp/swatplus-linux/
 RUN tar -xvzf /tmp/swatplus-linux.tgz -C /tmp/swatplus-linux/
