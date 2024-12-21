@@ -119,8 +119,6 @@ if __name__ == '__main__':
         )
 
         write_to(f'{proj_dir}/{proj_name}.qgs', project_string)
-
-        from cjfx import alert
-        alert(f'\ninitialised {proj_name}.qgs', 'Model Initialisation Complete')
+        print(f'\n\t> initialised {proj_name}.qgs\n')
 
 print()

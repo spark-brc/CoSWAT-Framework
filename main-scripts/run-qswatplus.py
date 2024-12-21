@@ -192,11 +192,11 @@ if __name__ == '__main__':
 
         delin = Delineation(plugin._gv, plugin._demIsProcessed)
         delin.init()
-        delin._dlg.numProcesses.setValue(30)
+        delin._dlg.numProcesses.setValue(1)
 
-        QSWATUtils.information('\t - DEM: {0}'.format(os.path.split(plugin._gv.demFile)[1]), True)
+        QSWATUtils.information('DEM: {0}'.format(os.path.split(plugin._gv.demFile)[1]), True)
         delin.addHillshade(plugin._gv.demFile, None, None, None)
-        QSWATUtils.information('\t - Inlets/outlets file: {0}'.format(os.path.split(plugin._gv.outletFile)[1]), True)
+        QSWATUtils.information('Inlets/outlets file: {0}'.format(os.path.split(plugin._gv.outletFile)[1]), True)
 
         outlets_buffer_gpd  = geopandas.read_file(f"../data-preparation/resources/regions/{region}/outlets-buffer.gpkg").to_crs('{auth}:{code}'.format(**details))
         
@@ -232,7 +232,6 @@ if __name__ == '__main__':
             # Remove the intersecting polygons from clippedReservoirs
             clippedReservoirs = clippedReservoirs[clippedReservoirs.index.isin(intersecting_indices)]
 
-
             lakesGDF = clippedReservoirs
             lakes_to_remove = []
 
@@ -245,35 +244,22 @@ if __name__ == '__main__':
                     if lake.geometry.contains(end_point) and not lake.geometry.contains(start_point):
                         
                         intersections = count_intersections(line, lake.geometry)
-                        if intersections >= 2:
-                            lakes_to_remove.append(lake_index)
+                        if intersections >= 2: lakes_to_remove.append(lake_index)
                         
                         
 
             # Remove the identified lakes
             lakesGDF = lakesGDF.drop(lakes_to_remove)
-            print(f"Remained with {len(lakesGDF)} reservoirs.")
             lakesGDF.to_file(lakesShapefn)
-
-            # input("I am checking if there are too short streams\n\nPress Enter to continue...")
         except:
             print("Error filtering reservoirs - will not be used in the model")
             raise
             
         delin.finishDelineation()
-        
 
         if not dlg.hrusButton.isEnabled():
             QSWATUtils.error('\t ! HRUs button not enabled', True)
             sys.exit(1)
-        
-        # os.system(f'create-outlets.py {version} {region}')
-        # import geopandas 
-
-        # outlets_all         = geopandas.read_file(f'../model-setup/CoSWATv{version}/{region}/Watershed/Shapes/outlets.shp')
-
-        # outlets_sel         = geopandas.clip(outlets_all, outlets_buffer_gpd)
-        # outlets_sel.to_file(f'../model-setup/CoSWATv{version}/{region}/Watershed/Shapes/outlets_sel.shp')
 
         hrus = HRUs(plugin._gv, dlg.reportsBox)
         hrus.init()
@@ -302,10 +288,6 @@ if __name__ == '__main__':
             sys.exit(1)
 
         QSWATUtils.information('\t - finished creating HRUs\n', True)
-        
         print()
-
-
-        from cjfx import alert
-        alert(f'done with running qswat+ for region {region}', 'QSWAT+ run complete')
+        print(f'done with running qswat+ for region {region}', '\nQSWAT+ run complete')
 
