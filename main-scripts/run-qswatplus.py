@@ -87,7 +87,7 @@ from resources.QSWATPlus.hrus import HRUs
 from resources.QSWATPlus.QSWATUtils import QSWATUtils
 from resources.QSWATPlus.parameters import Parameters
 
-from resources import datavariables as variables
+import datavariables as variables
 
 from glob import glob
 
@@ -245,8 +245,6 @@ if __name__ == '__main__':
                         
                         intersections = count_intersections(line, lake.geometry)
                         if intersections >= 2: lakes_to_remove.append(lake_index)
-                        
-                        
 
             # Remove the identified lakes
             lakesGDF = lakesGDF.drop(lakes_to_remove)

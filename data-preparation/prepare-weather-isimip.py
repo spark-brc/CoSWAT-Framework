@@ -31,7 +31,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-from resources import datavariables as variables
+import datavariables as variables
 
 def save_ts(file_n, var, lon, lat, out_file, progress_count = None, progress_total = None):
     if exists(out_file):

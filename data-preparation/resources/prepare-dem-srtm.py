@@ -18,7 +18,7 @@ from cjfx import download_file, unzip_file, list_files, delete_file, file_name, 
 import multiprocessing as mp
 from osgeo_utils import gdal_merge
 from osgeo import gdal
-from resources import datavariables as variables
+import datavariables as variables
 
 
 # variables

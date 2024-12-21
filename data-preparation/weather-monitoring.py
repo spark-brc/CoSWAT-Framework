@@ -12,7 +12,7 @@ Licence : MIT
 GitHub  : github.com/celray
 '''
 
-from resources import datavariables as variables
+import datavariables as variables
 import time
 import struct
 from datetime import datetime

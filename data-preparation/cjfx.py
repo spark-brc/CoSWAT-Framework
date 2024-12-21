@@ -746,28 +746,86 @@ def download(url, dest_dir, replace = False, v = True):
         return None
 
 
-def download_file(url, save_path, overwrite = True, v=True):
+import os
+import requests
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
+import math
+
+def download_chunk(url, start, end, path):
+    headers = {'Range': f'bytes={start}-{end}'}
+    response = requests.get(url, headers=headers, stream=True)
+    with open(path, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
+
+def download_file(url, save_path, exists_action='resume', num_connections=5, v=True):
     if v:
         print(f"\ndownloading {url}")
     fname = file_name(url, extension=True)
     save_dir = os.path.dirname(save_path)
     save_fname = "{0}/{1}".format(save_dir, fname)
 
-    response = requests.get(url, stream=True)
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
-    
-    if overwrite:
-        if exists(save_fname):
-            delete_file(save_fname)
-    else:
-        if exists(save_fname):
-            error("cannot download file; it already exists on disk")
+
+    # Handle existing file
+    if os.path.exists(save_fname):
+        if exists_action == 'skip':
+            if v:
+                print(f"File exists, skipping: {save_fname}")
+            return
+        elif exists_action == 'overwrite':
+            os.remove(save_fname)
+        # 'resume' is handled below
+
+    # Get file size
+    response = requests.head(url)
+    file_size = int(response.headers.get('content-length', 0))
+
+    # Resume download if file exists and exists_action is 'resume'
+    initial_pos = 0
+    if exists_action == 'resume' and os.path.exists(save_fname):
+        initial_pos = os.path.getsize(save_fname)
+        if initial_pos >= file_size:
+            if v:
+                print(f"File already completed: {save_fname}")
             return
 
-    with open(save_fname, "wb") as handle:
-        for data in tqdm(response.iter_content()):
-            handle.write(data)
+    # Calculate chunk sizes
+    chunk_size = math.ceil((file_size - initial_pos) / num_connections)
+    chunks = []
+    for i in range(num_connections):
+        start = initial_pos + (i * chunk_size)
+        end = min(start + chunk_size - 1, file_size - 1)
+        chunks.append((start, end))
+
+    # Download chunks in parallel
+    temp_files = [f"{save_fname}.part{i}" for i in range(num_connections)]
+    with ThreadPoolExecutor(max_workers=num_connections) as executor:
+        futures = []
+        for i, (start, end) in enumerate(chunks):
+            futures.append(
+                executor.submit(download_chunk, url, start, end, temp_files[i])
+            )
+        
+        # Wait for all downloads to complete with progress bar
+        with tqdm(total=file_size-initial_pos, initial=initial_pos, unit='B', 
+                 unit_scale=True, desc=fname) as pbar:
+            completed = initial_pos
+            while completed < file_size:
+                current = sum(os.path.getsize(f) for f in temp_files if os.path.exists(f))
+                pbar.update(current - completed)
+                completed = current
+
+    # Merge chunks
+    with open(save_fname, 'ab' if initial_pos > 0 else 'wb') as outfile:
+        for temp_file in temp_files:
+            if os.path.exists(temp_file):
+                with open(temp_file, 'rb') as infile:
+                    outfile.write(infile.read())
+                os.remove(temp_file)
 
 
 def apply_parallel(function_name, number_of_processes, *args):

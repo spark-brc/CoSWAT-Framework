@@ -10,7 +10,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-import resources.datavariables as variables
+import datavariables as variables
 from resources.template_proj import template_string
 import resources.project_init_template as template
 

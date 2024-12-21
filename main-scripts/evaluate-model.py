@@ -17,7 +17,7 @@ ignore_warnings()
 sys.path.insert(0, "../data-preparation")
 import warnings
 
-from resources import datavariables as variables
+import datavariables as variables
 
 warnings.filterwarnings('ignore')
 

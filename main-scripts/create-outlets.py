@@ -7,7 +7,7 @@ from genericpath import exists
 from shapely.wkt import loads
 from shapely.geometry import Point, Polygon
 
-from resources import datavariables as variables
+import datavariables as variables
 
 def min_distance(point, lines):
     return lines.distance(point).min()

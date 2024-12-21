@@ -26,7 +26,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-import resources.datavariables as variables
+import datavariables as variables
 
 
 

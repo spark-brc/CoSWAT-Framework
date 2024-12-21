@@ -16,7 +16,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-import resources.datavariables as variables
+import datavariables as variables
 
 if __name__ == '__main__':
     
@@ -31,6 +31,10 @@ if __name__ == '__main__':
         'auth': variables.final_proj_auth,
         'code': variables.final_proj_code,
     }
+
+    if not exists("resources/regions/"):
+        # extract the regions.zip file
+        os.system("unzip resources/regions.zip -d resources/")
 
     for region in regions:
 

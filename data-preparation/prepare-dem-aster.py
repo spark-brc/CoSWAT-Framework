@@ -14,7 +14,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-from resources import datavariables as variables
+import datavariables as variables
 from resources import login  # a python file with variables
                              # usename (string) and password
                              # (string) for authentication

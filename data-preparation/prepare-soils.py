@@ -28,7 +28,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-from resources import datavariables as variables
+import datavariables as variables
 
 # functions
 def rasterise_shape(shape_file:str, column_name:str, destination_tif:str, template_tif:str, no_data:int = -999) -> None:
@@ -71,7 +71,6 @@ if __name__ == "__main__":
         'auth': variables.final_proj_auth,
         'code': variables.final_proj_code,
     }
-
 
 
     if not os.path.exists(variables.fao_tmp_raster):

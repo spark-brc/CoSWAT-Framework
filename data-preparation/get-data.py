@@ -18,7 +18,7 @@ from cjfx import list_folders, ignore_warnings
 
 ignore_warnings()
 
-from resources import datavariables as variables
+import datavariables as variables
 
 # functions
 def get_python_exe() -> str:
@@ -59,7 +59,7 @@ if variables.redo_weather: os.system(f"{get_python_exe()} digest-nc-weather-file
 os.system(f"{get_python_exe()} prepare-weather-isimip.py {regions_}")
 
 # get grdc stations
-os.system(f"{get_python_exe()} get_grdc_stations.py {regions_}")
+os.system(f"{get_python_exe()} get-grdc-stations.py {regions_}")
 
 
 from cjfx import alert

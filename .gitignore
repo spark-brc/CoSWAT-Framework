@@ -11,7 +11,6 @@ data-preparation/landuse-ws/*
 data-preparation/lakes-ws/nat-earth/*
 data-preparation/resources/world-land-mass.gpkg
 data-preparation/resources/__pycache__
-data-preparation/resources/login.py
 data-preparation/soil-ws/fao/*
 model-setup/CoSWAT-v0.1.1/*
 data-preparation/weather-ws/*

@@ -9,7 +9,7 @@ ignore_warnings()
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-from resources import datavariables as variables
+import datavariables as variables
 
 # functions
 
@@ -26,20 +26,11 @@ if __name__ == '__main__':
 
         ts_dir      = f'./weather-ws/time_series/{scenario}'
 
-        # # listing existing csvs
-        # all_csvs = list_files(f'{ts_dir}/')
-
-        # current_fns = []
-
-        # if variables.redo_weather:
-        #     count_number = 0; end_number = len(all_csvs)
-        #     print(f"> there are {end_number} csv files in total")
-        #     for fn_ in all_csvs:
-        #         count_number += 1
-        #         # show_progress(count_number, end_number, bar_length = 300, string_before = "  ")
-        #         current_fns.append(file_name(fn_))
-
-        # ts_dir      = './tmp_dir'
+        # listing existing csvs
+        if not exists(f"resources/weather-lists/"):
+            print("# extracting weather-lists.zip")
+            os.system("unzip resources/weather-lists.zip -d resources/")
+        
 
         # download weather nc_files that do not exist
         if variables.redo_weather:

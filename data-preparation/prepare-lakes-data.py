@@ -35,7 +35,7 @@ def remove_holes(geometry):
 me = os.path.realpath(__file__)
 os.chdir(os.path.dirname(me))
 
-from resources import datavariables as variables
+import datavariables as variables
 
 if len(sys.argv) < 2:
     print(f"! select a region for which to prepare the dataset. options are: {', '.join(list_folders('./resources/regions/'))}\n")
