@@ -263,7 +263,7 @@ weather_rlds_links_list['observed']       = './resources/weather-lists/observed/
 weather_resolution          = 0.5 # decimal degrees was 5
 
 prepare_weather             = True
-redo_weather                = True
+redo_weather                = False
 weather_redownload          = False
 
 # run settings
