@@ -8,7 +8,7 @@ import platform
 
 # general
 data_resolution             = 30.91819138974098635 * 30     # 65
-processes                   = 4
+processes                   = 50
 no_data_value               = -999
 
 # dem variables
@@ -260,10 +260,10 @@ weather_rlds_links_list['observed']       = './resources/weather-lists/observed/
 # weather_rlds_links_list['ssp585-mri-esm2-0']            = './resources/weather-lists/ssp585/mri-esm2-0/rlds.txt'
 # weather_hurs_links_list['ssp585-mri-esm2-0']            = './resources/weather-lists/ssp585/mri-esm2-0/hurs.txt'
 															
-weather_resolution          = 0.5 # decimal degrees was 5
+weather_resolution          = 4 # decimal degrees was 5
 
 prepare_weather             = True
-redo_weather                = False
+redo_weather                = True
 weather_redownload          = False
 
 # run settings

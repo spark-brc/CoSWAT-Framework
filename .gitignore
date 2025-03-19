@@ -37,7 +37,6 @@ data-preparation/resources/QSWATPlus/imageio/resources/images/*.mp4
 data-preparation/resources/QSWATPlus/testdata
 model-outputs/*
 data-preparation/resources/swatplus_wgn.sqlite
-set-up-model.py
 *bounding-box-ESRI-54003.gpkg
 *weather-station-points-ESRI-54003.gpkg
 data-preparation/resources/QSWATPlus/__pycache__
