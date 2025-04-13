@@ -62,6 +62,7 @@ if __name__ == "__main__":
                 data.append([latitude, longitude])
 
         cols = ['longitude', 'latitude']
+        if exists(variables.weather_points_all):deleteFile(variables.weather_points_all)
         pointsToGeodataframe(data, out_shape=variables.weather_points_all, columns=cols)
 
         print(f"  > created points file: {variables.weather_points_all}")
