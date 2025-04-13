@@ -12,7 +12,7 @@ version                     = "0.4.5"
 
 # general
 data_resolution             = 30.91819138974098635 * 30     # 65
-processes                   = 2
+processes                   = 5
 no_data_value               = -999
 
 # dem variables
