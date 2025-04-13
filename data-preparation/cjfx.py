@@ -14,6 +14,7 @@ Updated : 26/12/2022
 '''
 
 import os
+import re
 import sys
 import urllib
 from collections import defaultdict
@@ -216,6 +217,18 @@ def convert_webm_to_mp3(webm_path, mp3_path):
     # save as mp3
     audio.export(mp3_path, format="mp3")
 
+def isYearInFileRange(fileName, yearToCheck):
+    # match all sequences of 4 digits (potential years)
+    possibleYears = re.findall(r'(?<!\d)(\d{4})(?!\d)', fileName)
+    
+    if len(possibleYears) < 2:
+        raise ValueError("Could not find two years in the file name.")
+
+    # convert to integers and sort
+    possibleYears = sorted([int(year) for year in possibleYears])
+    startYear, endYear = possibleYears[0], possibleYears[-1]
+
+    return startYear <= int(yearToCheck) <= endYear
 
 
 def download_video_youtube(url, path, audio_only = False, download_list = False, numbering = False):
@@ -1690,7 +1703,6 @@ def print_list(list_object):
 
 def disp(string_):
     print(f"\t- {string_}")
-
 
 def create_path(path_name, v = False):
     path_name = os.path.dirname(path_name)
