@@ -2,7 +2,6 @@
 
 import sys, os
 from cjfx import *
-import sqlalchemy
 
 ignore_warnings()
 
@@ -12,18 +11,23 @@ os.chdir(os.path.dirname(me))
 
 import datavariables as variables
 from resources.template_proj import template_string
-import resources.project_init_template as template
 
 if __name__ == '__main__':
-    
-    print('\n# initialising SWAT+ project')
-    if len(sys.argv) < 3:
-        print(f"! select version and a region for which to initialise the SWAT+ project. options are: {', '.join(list_folders('../data-preparation/resources/regions/'))}\n")
-        sys.exit()
 
-    version = sys.argv[1]
-    regions = sys.argv[2:]
-    
+    print('\n# initialising SWAT+ project')
+    version = variables.version
+
+    if len(sys.argv) > 1:
+
+        version = sys.argv[1]
+        if len(sys.argv) > 2:
+            regions = sys.argv[2:]
+        else:
+            regions = list_folders('../data-preparation/resources/regions/')
+
+    elif len(sys.argv) == 1:
+        regions = list_folders('../data-preparation/resources/regions/')
+
     details = {
         'auth': variables.final_proj_auth,
         'code': variables.final_proj_code,

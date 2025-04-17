@@ -5,6 +5,7 @@ from ccfx import *
 import datavariables as variables
 from coswatFX import shouldKeep, writeSWATPlusWeather
 import xarray
+import time
 
 regionPointsDir = "./regionPoints"
 weatherDir = './weather-ws'
@@ -17,8 +18,8 @@ details         = {
 extTypes         = ["tem", "pcp", "slr", "hmd", "wnd", ]
 
 varNames         = {'pcp': ['pr',],
-                    'tem': [ 'tasmax', 'tasmin'],
-                    'wnd': ['wind', 'wnd', 'sfcwind', 'sfcWind'],
+                    'tem': ['tasmax', 'tasmin'],
+                    'wnd': ['wnd', 'sfcwind', 'sfcWind', 'wind'],
                     'hmd': ['hurs', 'rhs'],
                     'slr': ['rlds',]}
 
@@ -54,6 +55,11 @@ if __name__ == "__main__":
 
     currentVariables = {}
 
+    while exists(f'{weatherDir}/download/downloadLock'):
+        print("  > waiting for download lock to be released...")
+        time.sleep(5)
+
+    writeFile(f'{weatherDir}/download/downloadLock', 'locked')
 
     if variables.prepare_weather:
         data = []
@@ -77,6 +83,8 @@ if __name__ == "__main__":
         for gcm in gcms:
             print(f"  > processing gcm: {gcm}")
 
+            if not exists(f"./resources/weather-lists/"):
+                os.system(f"unzip ./resources/weather-lists.zip -d ./resources")
             lines = []
             lines += readFile(variables.weather_pr_links_list[scenario][gcm])
             lines += readFile(variables.weather_hurs_links_list[scenario][gcm])
@@ -115,6 +123,7 @@ if __name__ == "__main__":
                     downloadString += f'{line}\n'
 
                 downloadList.append([f'{line}', f'{weatherDir}/download/{scenario}/{gcm}/'])
+                createPath(f'{weatherDir}/download/{scenario}/{gcm}/')
 
             writeFile(f"{weatherDir}/download_links.txt", downloadString)
             
@@ -127,6 +136,10 @@ if __name__ == "__main__":
 
             pool.close()
             print()
+
+            if exists(f'{weatherDir}/download/downloadLock'):
+                deleteFile(f'{weatherDir}/download/downloadLock')
+
 
             for region in regions:
                 print(f"    - region: {region}")
@@ -165,10 +178,13 @@ if __name__ == "__main__":
                 createPath(f"{dstDirCropped}/")
                 jobsCrop = []
                 for fname in keptFileNames:
-                    if exists(f"{dstDirCropped}/{getFileBaseName(fname)}"): deleteFile(f"{dstDirCropped}/{getFileBaseName(fname)}")
-                    command = f"cdo sellonlatbox,{','.join(regionBox)} {fname} {dstDirCropped}/{getFileBaseName(fname)} > /dev/null"
+                    if exists(f"{dstDirCropped}/{getFileBaseName(fname)}"):
+                        deleteFile(f"{dstDirCropped}/{getFileBaseName(fname)}")
+                        try: os.remove(f"{dstDirCropped}/{getFileBaseName(fname)}")
+                        except: pass
+                    command = f"cdo -O sellonlatbox,{','.join(regionBox)} {fname} {dstDirCropped}/{getFileBaseName(fname)} > /dev/null"
                     jobsCrop.append([command,])
-
+  
                 pool = multiprocessing.Pool(processes=variables.processes)
                 pool.starmap_async(os.system, jobsCrop)
                 pool.close()
@@ -182,6 +198,7 @@ if __name__ == "__main__":
 
                 jobsMerge = []
                 for extType in extTypes:
+                    
                     mergeTimeFiles = []
                     mergeTimeFilesMin = []
                     
@@ -212,11 +229,16 @@ if __name__ == "__main__":
                     deleteFile(mergedFileName)
                     deleteFile(mergedFileNameMin)
 
-                    command = f"cdo mergetime {' '.join(mergeTimeFiles)} {mergedFileName} > /dev/null"
+                    try: os.remove(mergedFileName)
+                    except: pass
+                    try: os.remove(mergedFileNameMin)
+                    except: pass
+
+                    command = f"cdo -O mergetime {' '.join(mergeTimeFiles)} {mergedFileName} > /dev/null"
                     jobsMerge.append([command,])
 
                     if extType == "tem":
-                        commandMin = f"cdo mergetime {' '.join(mergeTimeFilesMin)} {mergedFileNameMin} > /dev/null"
+                        commandMin = f"cdo -O mergetime {' '.join(mergeTimeFilesMin)} {mergedFileNameMin} > /dev/null"
                         jobsMerge.append([commandMin,])
 
                 pool = multiprocessing.Pool(processes=variables.processes)
@@ -229,6 +251,7 @@ if __name__ == "__main__":
                     selectedCoordinates.append(f"{row['geometry'].x},{row['geometry'].y},{extractRasterValue(variables.aster_tmp_tif, row['geometry'].y, row['geometry'].x)}")
                 
                 for extType in extTypes:
+                    if not extType == "wnd":continue 
                     if not extType in currentVariables:
                         print(f"  > no variable found for {extType}")
                         continue

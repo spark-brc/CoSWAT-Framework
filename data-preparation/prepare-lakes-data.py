@@ -22,13 +22,23 @@ ignore_warnings()
 
 
 # functions
-def remove_holes(geometry):
-    if geometry.geom_type == 'Polygon':
-        return Polygon(geometry.exterior)
-    elif geometry.geom_type == 'MultiPolygon':
-        return MultiPolygon([Polygon(part.exterior) for part in geometry])
-    else:
-        return geometry
+def removeHoles(thisGeometry):
+    # leave empty geoms alone
+    if thisGeometry.is_empty:
+        return thisGeometry
+
+    geomType = thisGeometry.geom_type
+    if geomType == 'Polygon':
+        # rebuild from exterior only
+        return Polygon(thisGeometry.exterior)
+
+    if geomType == 'MultiPolygon':
+        # iterate over .geoms, not the object itself
+        polys = [Polygon(poly.exterior) for poly in thisGeometry.geoms]
+        return MultiPolygon(polys)
+
+    # fallback for other types (Point, LineString, etc.)
+    return thisGeometry
 
 
 # change working directory
@@ -37,13 +47,15 @@ os.chdir(os.path.dirname(me))
 
 import datavariables as variables
 
-if len(sys.argv) < 2:
-    print(f"! select a region for which to prepare the dataset. options are: {', '.join(list_folders('./resources/regions/'))}\n")
-    sys.exit()
-
 print('\n# preparing lakes data...\n')
+if len(sys.argv) < 2:
+    regions = list_folders('./resources/regions/')
+    print(f"  > using all regions: {', '.join(regions)}\n")
+else:
+    regions = sys.argv[1:]
+    print(f"  > using regions: {', '.join(regions)}\n")
+    
 
-regions = sys.argv[1:]
 
 details = {
     'auth': variables.final_proj_auth,
@@ -70,7 +82,7 @@ for region in regions:
     clippedReservoirs = clippedReservoirs[clippedReservoirs.calcAreas > (variables.grand_lake_thres)]
 
     # Assuming 'gdf' is your GeoDataFrame with polygons
-    clippedReservoirs['geometry'] = clippedReservoirs['geometry'].apply(remove_holes)
+    clippedReservoirs['geometry'] = clippedReservoirs['geometry'].apply(removeHoles)
 
     clippedReservoirs.to_file(variables.grand_final_shp.format(**details))
     clippedReservoirs.to_file(variables.grand_final_gpkg.format(**details), driver = 'GPKG')

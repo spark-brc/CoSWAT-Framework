@@ -57,3 +57,4 @@ data-preparation/resources/regions/*
 data-preparation/resources/QSWATPlus
 data-preparation/resources/login.py
 data-preparation/resources/swatplus_wgn.zip
+/data-preparation/dem-ws

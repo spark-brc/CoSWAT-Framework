@@ -76,6 +76,8 @@ if __name__ == "__main__":
 
                 results = pool.starmap_async(download, jobs)
                 results.get()
+                pool.close()
+                pool.join()
             else:
                 print('! failed to download data')
                 print(f"provide your login data in the 'login.py' file")
@@ -109,6 +111,7 @@ if __name__ == "__main__":
     resampled_dem_files = list_files(f"{variables.aster_resampled_dir}", "tif")   # list files that have been resampled
 
     pool.close()
+    pool.join()
 
     print('\n\n\t> merging rasters')
     
