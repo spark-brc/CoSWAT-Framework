@@ -18,7 +18,7 @@ no_data_value               = -999
 # dem variables
 re_resample                 = False
 remerge_dem                 = False
-redownload_dem              = True
+redownload_dem              = False
 
 # outlets variables
 channel_snap_thres          = 3500
@@ -58,7 +58,7 @@ fao_usersoil_fn             = "../model-data/{region}/tables/worldSoilsUsersoil.
 fao_soil_shape_fn           = "./resources/CoSWAT-GM-fao-soil-DSMW-{auth}-{code}.gpkg"
 fao_usersoil_db             = "./resources/usersoilFAO.csv"
 
-esa_final_raster            = "../model-data/{region}/raster/landuse-esa-{year_model}-{auth}-{code}.tif"
+esa_final_raster            = "../model-data/{region}/raster/ricemap-v1-2025-{auth}-{code}.tif"
 esa_base_url                = "https://dap.ceda.ac.uk"
 esa_base_path               = "neodc/esacci/land_cover/data/land_cover_maps/v2.0.7/ESACCI-LC-L4-LCCS-Map-300m-P1Y-{year}-v2.0.7.tif"
 esa_landuse_year            = 2011
@@ -77,9 +77,9 @@ weather_points_final        = './weather-ws/global-weather-points.gpkg'
 
 weather_resolution          = 0.5      # decimal degrees was 5
 
-prepare_weather             = True
-redo_weather                = True
-weather_redownload          = False
+prepare_weather             = True # global option: whether to write climate data to region data within 'model-data' (redo and redownload implied if needed)
+redo_weather                = True # whether to pre-process the weather data netcdf files
+weather_redownload          = True # whether to download the weather data netcdf files
 
 # run settings
 run_period                  = '1981-1990'

@@ -69,6 +69,7 @@ if __name__ == "__main__":
 
         cols = ['longitude', 'latitude']
         if exists(variables.weather_points_all):deleteFile(variables.weather_points_all)
+        createPath(f"./weather-ws/")
         pointsToGeodataframe(data, out_shape=variables.weather_points_all, columns=cols)
 
         print(f"  > created points file: {variables.weather_points_all}")
@@ -82,6 +83,8 @@ if __name__ == "__main__":
 
         for gcm in gcms:
             print(f"  > processing gcm: {gcm}")
+            if not exists(f"./resources/weather-lists/"):
+                os.system(f"unzip /CoSWAT-Global-Model/data-preparation/resources/weather-lists.zip -d /CoSWAT-Global-Model/data-preparation/resources")
 
             if not exists(f"./resources/weather-lists/"):
                 os.system(f"unzip ./resources/weather-lists.zip -d ./resources")
@@ -251,7 +254,6 @@ if __name__ == "__main__":
                     selectedCoordinates.append(f"{row['geometry'].x},{row['geometry'].y},{extractRasterValue(variables.aster_tmp_tif, row['geometry'].y, row['geometry'].x)}")
                 
                 for extType in extTypes:
-                    if not extType == "wnd":continue 
                     if not extType in currentVariables:
                         print(f"  > no variable found for {extType}")
                         continue
