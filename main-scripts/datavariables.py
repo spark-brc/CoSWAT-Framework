@@ -58,7 +58,8 @@ fao_usersoil_fn             = "../model-data/{region}/tables/worldSoilsUsersoil.
 fao_soil_shape_fn           = "./resources/CoSWAT-GM-fao-soil-DSMW-{auth}-{code}.gpkg"
 fao_usersoil_db             = "./resources/usersoilFAO.csv"
 
-esa_final_raster            = "../model-data/{region}/raster/landuse-esa-{year_model}-{auth}-{code}.tif"
+# esa_final_raster            = "../model-data/{region}/raster/landuse-esa-{year_model}-{auth}-{code}.tif"
+esa_final_raster            = "../model-data/{region}/raster/ricemap-v1-2025-{auth}-{code}.tif" # for paddy
 esa_base_url                = "https://dap.ceda.ac.uk"
 esa_base_path               = "neodc/esacci/land_cover/data/land_cover_maps/v2.0.7/ESACCI-LC-L4-LCCS-Map-300m-P1Y-{year}-v2.0.7.tif"
 esa_landuse_year            = 2011
