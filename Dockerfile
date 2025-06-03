@@ -17,6 +17,7 @@ RUN pip3 install ccfx
 RUN pip3 install numpy==1.23.4
 RUN pip3 install pandas==1.5.3 xarray==2022.12.0 matplotlib==3.6.3 rasterio==1.3.4 numexpr==2.8.4 bottleneck==1.3.6
 RUN pip3 install numpy==1.23.4
+RUN pip3 install termcolor
 
 # Set Python 3.10 as the default python3
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
