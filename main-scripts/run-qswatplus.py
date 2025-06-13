@@ -255,10 +255,10 @@ if __name__ == '__main__':
         landScape       = Landscape(plugin._gv, fxObj, 1, fxObj)
 
         landScape.clipperFile = plugin._gv.subbasinsFile
-        landScape.calcHillslopes(variables.thresholdCh, landScape.clipperFile, proj.layerTreeRoot())
+        landScape.calcHillslopes(variables.thresholdCh, landScape.clipperFile, proj.layerTreeRoot()) # landscape hillslopes threshold
 
         landScape.calcFloodplain(True, proj.layerTreeRoot())
-        plugin._gv.floodFile = os.path.abspath(f'../model-setup/CoSWATv{version}/{region}/Watershed/Rasters/Landscape/Flood/invflood0_00.tif')
+        plugin._gv.floodFile = os.path.abspath(f'../model-setup/CoSWATv{version}/{region}/Watershed/Rasters/Landscape/Flood/invflood0_00.tif') # dem inversion floodplain
 
         print("Filtering reservoirs...")
         try:

@@ -21,7 +21,8 @@ import platform
 import shutil
 from termcolor import colored
 import numpy as np
-from cjfx import list_all_files
+from cjfx import list_all_files, read_from
+from resources import pcom
 
 # change working directory
 me = os.path.realpath(__file__)
@@ -51,6 +52,7 @@ class Paddy:
         txtDir = os.path.join(self.projDir, region, 'Scenarios', 'Default', 'TxtInOut')
         backupDir = os.path.join(txtDir, 'paddy_backup')
         return txtDir, backupDir
+
 
     def create_backup(self, region):
         filesToCopy = [
@@ -128,13 +130,55 @@ class Paddy:
             paddy_objs = np.array(paddy_objs)
         return paddy_objs
 
+    # NOTE: this function is used for new version
     def conv_wetlandwet(self, region):
         txtDir, backupDir = self._get_paths(region)
         paddy_objs = self.get_paddy_objs(region)
+        # print(paddy_objs[:, 1])
         with open(os.path.join(backupDir, "wetland.wet"), "r") as fw:
             data = fw.readlines()
             ndigits = len(str(data[-1].split()[0]))
             stid = int(data[-1].split()[0]) + 1
+            # print(stid)
+            for paddy_obj in paddy_objs[:, 1]:
+                new_line = (
+                    f'{int(stid):8d}' 
+                    f'  {paddy_obj:<16s}' 
+                    f"{'initwet2':>18s}" 
+                    f"{'paddy':>18s}" 
+                    # f"{paddy_obj:>18s}" 
+                    f"{'weir':>18s}" 
+                    f"{'sedwet1':>18s}" 
+                    f"{'nutwet1':>18s}\n" 
+                )
+                data.append(new_line)
+                stid += 1
+        # create weir column if not exists
+        if data[1].split()[-1] == "nut":
+            data[1] = data[1].rstrip() + f"{'weir':>18s}\n"
+
+        # add weir1 to paddy lines and null to others
+        for c2, line in enumerate(data):
+            if line.split()[3] == "paddy":
+                data[c2] = line.rstrip() + f"{'weir1':>18s}\n"
+            elif line.split()[0].isdigit() and line.split()[3] != "paddy":
+                data[c2] = line.rstrip() + f"{'null':>18s}\n"
+            else:
+                pass
+
+        with open(os.path.join(txtDir, "wetland.wet"), "w") as wf:
+            wf.writelines(data)
+
+    # NOTE: this function is used for old version
+    def conv_wetlandwet_(self, region):
+        txtDir, backupDir = self._get_paths(region)
+        paddy_objs = self.get_paddy_objs(region)
+        # print(paddy_objs[:, 1])
+        with open(os.path.join(backupDir, "wetland.wet"), "r") as fw:
+            data = fw.readlines()
+            ndigits = len(str(data[-1].split()[0]))
+            stid = int(data[-1].split()[0]) + 1
+            # print(stid)
             for paddy_obj in paddy_objs[:, 1]:
                 new_line = (
                     f'{int(stid):8d}' 
@@ -151,8 +195,9 @@ class Paddy:
 
         with open(os.path.join(txtDir, "wetland.wet"), "w") as wf:
             wf.writelines(data)
+
+        '''        # this is for testing
     # print(paddy_objs)
-        '''
         with open(os.path.join(self.wd, 'backup', 'wetland.wet'), "r") as f:
             data = f.readlines()
             ndigits = len(str(data[-1].split()[0]))
@@ -288,34 +333,51 @@ class Paddy:
                 " file is not overwritten!"
                 )
 
-    def conv_hydwet(self, region):
+    def conv_hydwet(self, region, paddy_ids=False):
         txtDir, backupDir = self._get_paths(region)
         paddy_objs = self.get_paddy_objs(region)
-        print(paddy_objs)
+        # print(paddy_objs)
         with open(os.path.join(backupDir, "hydrology.wet"), "r") as fw:
             data = fw.readlines()
             # ndigits = len(str(data[-1].split()[0]))
             # stid = int(data[-1].split()[0]) + 1
-            for paddy_obj in paddy_objs:
+            if paddy_ids is True:
+                for paddy_obj in paddy_objs:
+                    new_line = (
+                        # f'{int(stid):8d}' + 
+                        f'{paddy_obj[1]:<16s}' 
+                        f"{1:>14.5f}" 
+                        f"{150:>14.5f}" 
+                        f"{1:>14.5f}" 
+                        f"{150:>14.5f}" 
+                        f"{0.5:>14.5f}" 
+                        f"{0.75:>14.5f}" 
+                        f"{1:>14.5f}" 
+                        f"{1:>14.5f}" 
+                        f"{1:>14.5f}" 
+                        f"{1:>14.5f}\n" 
+                    )
+                    data.append(new_line)
+            else:
                 new_line = (
                     # f'{int(stid):8d}' + 
-                    f'{paddy_obj[0]:<16s}' 
+                    f'{"paddy":<16s}' 
                     f"{1:>14.5f}" 
-                    f"{180:>14.5f}" 
+                    f"{150:>14.5f}" 
                     f"{1:>14.5f}" 
-                    f"{180:>14.5f}" 
-                    f"{0.1:>14.5f}" 
-                    f"{0.8:>14.5f}" 
+                    f"{150:>14.5f}" 
+                    f"{0.5:>14.5f}" 
+                    f"{0.75:>14.5f}" 
                     f"{1:>14.5f}" 
                     f"{1:>14.5f}" 
                     f"{1:>14.5f}" 
-                    f"{0.5:>14.5f}\n" 
+                    f"{1:>14.5f}\n" 
                 )
-                data.append(new_line)
+                data.append(new_line)             
                 # stid += 1
         with open(os.path.join(txtDir, "hydrology.wet"), "w") as wf:
             wf.writelines(data)
-        
+
     def conv_landlum(self, region):
         txtDir, backupDir = self._get_paths(region)
         with open(os.path.join(backupDir,"landuse.lum"), "r") as fw:
@@ -354,8 +416,46 @@ class Paddy:
                 " file is not overwritten!"
                 )
 
+    def rice_database(self, region):
+
+
+        txtDir, backupDir = self._get_paths(region)
+        backupPltDb = read_from(os.path.join(backupDir, "plant.ini"))
+        plantDatabase = {}
+        currentPcom = None
+        # pcom.PlantCom('rice1')
+
+        for line in backupPltDb[2:]:
+            parts = line.split()
+            if len(parts) < 4:
+                currentPcom = parts[0]
+                plantDatabase[currentPcom] = pcom.PlantCom(currentPcom)
+                plantDatabase[currentPcom].pltRotYr = int(parts[2])
+                continue
+            name, lc_status, lai_init, bm_init, yrs_init = parts[0], parts[1], parts[2], parts[3], parts[6]
+            newPlant = pcom.Plant(name, lc_status, lai_init, bm_init, yrs_init)
+            plantDatabase[currentPcom].addPlant(newPlant)
+        plantDatabase['rice140_comm'] = pcom.PlantCom('rice140_comm')
+        plantDatabase['rice140_rye'] = pcom.PlantCom('rice140_rye')
+
+        
+        print(plantDatabase)
+        '''    
+        '''
+
+        # rice_db = {
+        #     'rice140_comm': [[1, 1],
+        # }
+
+
+
+
+
+
+
     def conv_plantin(self, region):
         txtDir, backupDir = self._get_paths(region)
+
         inf = "plant.ini"
         with open(os.path.join(backupDir, inf), "r") as fw:
             data = fw.readlines()
@@ -442,15 +542,9 @@ class Paddy:
         return newline
 
 
-    # def copy_nfiles_paddy(self):
-    #     suffix = ' passed'
-    #     cfiles = ['weir.res', 'puddle.ops', 'swatplus.exe']
-    #     for cfile in cfiles:
-    #         if not os.path.isfile(cfile):
-    #             shutil.copy2(os.path.join(opt_files_path, cfile), os.path.join(self.wd, cfile))
-    #             print(" >>> '{}' file copied ...".format(cfile) + colored(suffix, 'green'))
-    #         else:
-    #             print(" >>> '{}' file already exist ...".format(cfile) + colored(suffix, 'green'))
+
+
+
 
 
     def conv_paddy(self):
@@ -460,183 +554,12 @@ class Paddy:
             # self.create_backup(region)
             # self.conv_hrudata(region)
             # self.conv_wetlandwet(region)
-            # self.conv_filecio(region)
-            # self.conv_initialres(region)
-            # self.conv_irrops(region)
-            self.conv_hydwet(region)
-            # self.conv_landlum(region)
-            # self.conv_plantin(region)
-            # self.conv_hyd_perco(region, perco=0.0001)
-            print(f"\n### running paddy conversion for {region} ... " + colored('completed!', 'green') + "\n\n")
-
-
-class PaddyTemp:
-    def __init__(self, version):
-        self.version = version
-        self.projDir = f"../model-setup/CoSWATv{version}/"
-
-    def get_model_paths(self):
-        all_models = list_all_files("../model-setup/", "qgs")
-        versions = {}
-        for model in all_models:
-            model = model.split("/")[-1].split("\\") if platform.system() == "Windows" else model.split("/")
-            v = model[0 if platform.system() == 'Windows' else 2].lower().replace('coswatv', '')
-            r = model[1 if platform.system() == 'Windows' else 3]
-            if not v in versions:
-                versions[v] = []
-            versions[v].append(r)
-        # print(versions)
-        # regions[0] == "all"
-        regions = versions[self.version]
-        return regions
-
-    def _get_paths(self, region):
-        txtDir = os.path.join(self.projDir, region, 'Scenarios', 'Default', 'TxtInOut')
-        backupDir = os.path.join(txtDir, 'paddy_backup')
-        return txtDir, backupDir
-
-
-    def create_backup(self, region):
-        filesToCopy = [
-            "file.cio",
-            "hru-data.hru",
-            "hydrology.wet",
-            "hydrology.hyd",
-            "wetland.wet",
-            "initial.res",
-            "irr.ops",
-            "landuse.lum",
-            "plant.ini"
-        ]
-        suffix = ' passed'
-        print(f" > Creating 'paddy_backup' folder in {region} txtDir ...")
-
-        txtDir, backupDir = self._get_paths(region)
-        if not os.path.isdir(backupDir):
-            os.makedirs(backupDir)
-            for j in filesToCopy:
-                if not os.path.isfile(os.path.join(backupDir, j)):
-                    shutil.copy2(os.path.join(txtDir, j), os.path.join(backupDir, j))
-                    print("  >>> '{}' file copied ...".format(j) + colored(suffix, 'green'))
-            print(f" > Creating 'paddy_backup' folder in {region} txtDir ..." + colored(suffix, 'green') + "\n")
-        else:
-            print(f" > 'paddy_backup' folder already exists in {region} txtDir ..." + colored("existed", 'red') + "\n")
-
-    def conv_hrudata(self, region, lumlist=None):
-        if lumlist is None:  # landcode
-            lumlist = ["rice"]
-        txtDir, backupDir = self._get_paths(region)
-        with open(os.path.join(backupDir, 'hru-data.hru'), "r") as f:
-            data = f.readlines()
-            ndigits = len(str(data[-1].split()[0]))
-            for ll in lumlist:
-                c = 0
-                for line in data:
-                    if (
-                        (len(line.split()) >=6) and 
-                        (line.split()[5] != "null") and 
-                        (line.split()[5].startswith(ll))
-                    ):
-                        new_line = self.replace_line_hrudata(line, ndigits)
-                        data[c] = new_line
-                    c += 1
-        with open(os.path.join(txtDir, "hru-data.hru"), "w") as wf:
-            wf.writelines(data)
-        new_file = os.path.join(txtDir, 'hru-data.hru')
-        print(
-            f" {'>'*3} {os.path.basename(new_file)}" + 
-            " file is overwritten successfully!"
-            )
-        
-    def replace_line_hrudata(self, line, nd):
-        parts = line.split()
-        new_line = (
-            f'{int(parts[0]):8d}'+ f'{parts[1]:>9s}'+ f'{parts[2]:>27s}'+
-            f'{parts[3]:>18s}'+ f'{parts[4]:>18s}'+ f"{'rice_paddy_lum':>18s}"+
-            f'{parts[6]:>18s}' + f"{f'paddy{int(parts[0][-4:]):>0{nd}d}':>18s}" + 
-            f'{parts[8]:>18s}' + f'{parts[9]:>18s}'
-            "\n"
-        )
-        return new_line
-
-    def get_paddy_objs(self, region):
-        # Get paddy objects from hru-data.hru file
-
-        txtDir, _ = self._get_paths(region) 
-        with open(os.path.join(txtDir, 'hru-data.hru'), "r") as f:
-            data = f.readlines()
-            paddy_objs = []
-            for line in data:
-                if len(line.split()) >=7 and line.split()[7].startswith("paddy"):
-                    paddy_objs.append([line.split()[1], line.split()[7]])
-            paddy_objs = np.array(paddy_objs)
-        return paddy_objs
-
-    def conv_wetlandwet(self, region):
-        txtDir, backupDir = self._get_paths(region)
-        paddy_objs = self.get_paddy_objs(region)
-        # print(paddy_objs[:, 1])
-        with open(os.path.join(backupDir, "wetland.wet"), "r") as fw:
-            data = fw.readlines()
-            ndigits = len(str(data[-1].split()[0]))
-            stid = int(data[-1].split()[0]) + 1
-            # print(stid)
-            for paddy_obj in paddy_objs[:, 1]:
-                new_line = (
-                    f'{int(stid):8d}' 
-                    f'  {paddy_obj:<16s}' 
-                    f"{'high_init':>18s}" 
-                    f"{'paddy':>18s}" 
-                    # f"{paddy_obj:>18s}" 
-                    f"{'weir':>18s}" 
-                    f"{'sedwet1':>18s}" 
-                    f"{'nutwet1':>18s}\n" 
-                )
-                data.append(new_line)
-                stid += 1
-
-        with open(os.path.join(txtDir, "wetland.wet"), "w") as wf:
-            wf.writelines(data)
-
-        '''        # this is for testing
-    # print(paddy_objs)
-        with open(os.path.join(self.wd, 'backup', 'wetland.wet'), "r") as f:
-            data = f.readlines()
-            ndigits = len(str(data[-1].split()[0]))
-            for ll in lumlist:
-                c = 0
-                for line in data:
-                    if line.split()[5] != "null" and line.split()[5].startswith(ll):
-                        new_line = self.replace_line(line, ndigits)
-                        data[c] = new_line
-                    c += 1
-        '''
-
-    def replace_line_wetlandwet(self, line, nd):
-        parts = line.split()
-        new_line = (
-            f'{int(parts[0]):8d}'+ f'{parts[1]:>9s}'+ f'{parts[2]:>27s}'+
-            f'{parts[3]:>18s}'+ f'{parts[4]:>18s}'+ f"{'rice_paddy_lum':>18s}"+
-            f'{parts[6]:>18s}' + f"{f'paddy{int(parts[0][-4:]):>0{nd}d}':>18s}" + 
-            f'{parts[8]:>18s}' + f'{parts[9]:>18s}'
-            "\n"
-        )
-        return new_line
-
-
-    def conv_paddy(self):
-        regions = self.get_model_paths()
-        for region in regions:
-            print(f"\n\n### running paddy conversion for {region} ... " + colored('started!', 'blue'))
-            # self.create_backup(region)
-            # self.conv_hrudata(region)
-            self.conv_wetlandwet(region)
-            # self.conv_filecio(region)
-            # self.conv_initialres(region)
+            # self.conv_filecio(region) # new version would not need this
+            # self.conv_initialres(region) # new version would not need this
             # self.conv_irrops(region)
             # self.conv_hydwet(region)
             # self.conv_landlum(region)
-            # self.conv_plantin(region)
+            self.conv_plantin(region)
             # self.conv_hyd_perco(region, perco=0.0001)
             print(f"\n### running paddy conversion for {region} ... " + colored('completed!', 'green') + "\n\n")
 
@@ -644,8 +567,9 @@ class PaddyTemp:
 
 
 if __name__ == "__main__":
-    m1 = PaddyTemp('0.4.0')
-    m1.conv_paddy()
+    m1 = Paddy('0.1.0')
+    # m1.conv_paddy()
+    m1.rice_database('asia-korea')
 
 
     # args = sys.argv
