@@ -104,11 +104,13 @@ if __name__ == "__main__":
     # we then create a vrt
     vrt_output_path = f"{variables.aster_download_tiles_dir}/../global-aster.vrt"
     if not exists(vrt_output_path):
-        print(f'\t> creating vrt from tiles')
-        vrt = gdal.BuildVRT(vrt_output_path, allTiles, callback=progressCallback, callback_data=None)
-        if vrt is None:
-            raise RuntimeError("Failed to create VRT")
-        vrt = None
+        if variables.re_resample: # we just did to avoid create vrt file
+                
+            print(f'\t> creating vrt from tiles')
+            vrt = gdal.BuildVRT(vrt_output_path, allTiles, callback=progressCallback, callback_data=None)
+            if vrt is None:
+                raise RuntimeError("Failed to create VRT")
+            vrt = None
 
     # re-resample
     if variables.re_resample:

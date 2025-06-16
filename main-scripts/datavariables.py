@@ -11,7 +11,7 @@ import platform
 version                     = "0.4.5"
 
 # general
-data_resolution             = 500 #30.91819138974098635 * 30     # 65
+data_resolution             = 2000 #30.91819138974098635 * 30     # 65
 processes                   = 20
 taudemProcesses             = 5
 no_data_value               = -999

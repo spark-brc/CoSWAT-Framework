@@ -1,0 +1,187 @@
+import os
+from textual.app import App, ComposeResult
+from textual.containers import Container
+from textual.widgets import Header, Static
+
+# --- Define file paths that indicate specific status ---
+statusIndicators = {
+    "Delineating": "/Watershed/Rasters/DEM/dem-aster-ESRI-54003_burned.tif",
+    "Flood Plain": "/Watershed/Rasters/Landscape/Flood/creatingFloodPlain",
+    "HRUs Created": "/Watershed/Text/HruLanduseSoilSlopeRepSwat.txt",
+    "Editor Created": "/DatabaseBackups/",
+    "Finished Editor": ["/Scenarios/Default/TxtInOut/hru-data.hru", "/Scenarios/Default/TxtInOut/file.cio"],
+    "Running": "/Scenarios/Default/TxtInOut/basin_wb_aa.txt",
+    "Finished Running": "/Scenarios/Default/TxtInOut/success.fin"
+}
+
+# --- List of all statuses in order ---
+allStatuses = ["Pending", "Initialised", "Delineating", "Flood Plain", "HRUs Created", 
+                "Editor Created", "Finished Editor", "Running", "Finished Running"]
+
+# --- Helper function to create valid IDs from status names ---
+def statusToId(status):
+    '''
+    Convert a status name to a valid ID by replacing spaces with underscores.
+
+    status : status name string
+    '''
+    return status.lower().replace(" ", "_")
+
+# --- Helper function to determine a folder's status ---
+def determineFolderStatus(folderPath):
+    '''
+    Check a folder and determine its current status based on file indicators.
+
+    folderPath : path to the folder to check
+    '''
+    if not os.path.exists(folderPath):
+        return "Pending"
+    # Start with initialized status
+    highestStatus = "Initialised"
+    # Check for all indicator files to determine the highest status
+    for status, indicators in statusIndicators.items():
+        if isinstance(indicators, list):
+            # All files in the list must exist
+            if all(os.path.exists(os.path.join(folderPath, ind.lstrip('/'))) for ind in indicators):
+                highestStatus = status
+        else:
+            # Single file indicator
+            if os.path.exists(os.path.join(folderPath, indicators.lstrip('/'))):
+                highestStatus = status
+    return highestStatus
+
+# --- Path configuration ---
+refreshInterval = 30
+
+coswatDir   = '/drive/ws/github/CoSWAT-Framework'
+srcDir      = f'{coswatDir}/data-preparation/resources/regions'
+modelDir    = f'{coswatDir}/model-setup/CoSWATv0.4.5'
+
+# --- Textual App ---
+class FolderItem(Static):
+    '''
+    Widget to display a folder item.
+
+    folderName : name of the folder to display
+    '''
+    def __init__(self, folderName, **kwargs):
+        super().__init__(f"• {folderName}", **kwargs)
+        self.folderName = folderName
+
+class StatusApp(App):
+    '''
+    The main application class.
+    
+    directoriesToWatch : list of directory names to monitor
+    '''
+    CSS_PATH = "style.css"
+
+    def __init__(self, directoriesToWatch, interval=5, **kwargs):
+        super().__init__(**kwargs)
+        self.directoriesToWatch = directoriesToWatch
+        self.folderStatus = {}
+        self.updateFolderListAndStatuses()
+        self.updateInterval = interval  # seconds between updates
+
+    def compose(self) -> ComposeResult:
+        '''
+        Create the initial layout with persistent columns.
+
+        returns : ComposeResult generator for layout
+        '''
+        yield Header()
+        with Container(id="main_container"):
+            for status in allStatuses:
+                with Container(id=f"{statusToId(status)}_column", classes="column"):
+                    yield Static(f"[b]{status}[/b]", id=f"{statusToId(status)}_header", classes="header-cell")
+
+    def on_mount(self) -> None:
+        '''
+        Set up periodic refresh every other second.
+        '''
+        self.set_interval(self.updateInterval, self.updateAndRebuild)
+
+    def updateFolderListAndStatuses(self):
+        '''
+        Update the folder statuses, including all watched directories.
+        '''
+        self.folderStatus = {}
+        for dirName in self.directoriesToWatch:
+            modelFolderPath = os.path.join(modelDir, dirName)
+            self.folderStatus[dirName] = determineFolderStatus(modelFolderPath)
+
+    def updateAndRebuild(self):
+        '''
+        Update folder statuses and refresh column contents.
+        '''
+        self.updateFolderListAndStatuses()
+        for status in allStatuses:
+            column = self.query_one(f"#{statusToId(status)}_column")
+            # Remove all children except the header
+            headerId = f"{statusToId(status)}_header"
+            for child in list(column.children):
+                if child.id != headerId:
+                    child.remove()
+            # Add new contents
+            foldersWithStatus = [name for name, s in self.folderStatus.items() if s == status]
+            if not foldersWithStatus:
+                column.mount(Static(f"• No {status.lower()} folders", classes="empty-message"))
+            else:
+                for folder in foldersWithStatus:
+                    column.mount(FolderItem(folder, classes="list-item"))
+        self.refresh()
+
+# --- Run the application ---
+if __name__ == "__main__":
+    # Replace with your actual listFolders function
+    from ccfx import listFolders  # Assuming this is defined in your environment
+    directoriesToWatch = listFolders(srcDir)
+
+    # sort directoriesToWatch to ensure consistent order
+    directoriesToWatch.sort()
+
+    # Write CSS file
+    with open("style.css", "w") as f:
+        f.write("""
+        #main_container {
+            layout: horizontal;
+            overflow-x: auto;
+            height: 100%;
+            padding: 1;
+        }
+        .column {
+            width: 1fr;
+            height: 100%;
+            margin-right: 1;
+            border: round white;
+            padding: 1;
+            min-width: 20;
+            overflow: auto;
+            max-height: 100%;
+        }
+        .header-cell {
+            content-align: center middle;
+            height: 3;
+            margin-bottom: 1;
+            border-bottom: solid white;
+            background: $panel;
+            dock: top;
+        }
+        .list-item {
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+            height: auto;
+            content-align: left middle;
+            text-wrap: wrap;
+        }
+        .empty-message {
+            margin-top: 1;
+            content-align: center middle;
+            color: grey;
+        }
+        """)
+
+    app = StatusApp(directoriesToWatch=directoriesToWatch, interval=refreshInterval)
+    app.run()
